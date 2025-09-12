@@ -34,7 +34,7 @@ export function middleware(req: NextRequest) {
 
   if ((pathname === "/login" || pathname === "/signup") && token) {
     // already logged in → redirect to dashboard
-    const dashboardUrl = new URL("/dashboard", req.url);
+    const dashboardUrl = new URL("/", req.url);
     return NextResponse.redirect(dashboardUrl);
   }
 

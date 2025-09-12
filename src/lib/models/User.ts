@@ -4,7 +4,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: "user" | "admin"; // 👈 role field for admin
+  role: "user" | "admin";
+  profilePic?: string; // 👈 new optional field
 }
 
 const userSchema = new Schema<IUser>(
@@ -13,6 +14,7 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
+    profilePic: { type: String, default: "" }, // 👈 Cloudinary image URL
   },
   { timestamps: true }
 );

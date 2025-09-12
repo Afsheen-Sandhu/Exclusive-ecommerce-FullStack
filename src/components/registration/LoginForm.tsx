@@ -4,17 +4,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputField } from "../ui/inputs";
-import { Button } from "../ui/buttons";
+import { Button, ToggleButton } from "../ui/buttons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { loginSchema } from "@/lib/validations/login-schema";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { Eye, EyeClosed } from "lucide-react";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const {
     register,
@@ -24,32 +26,30 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-const onSubmit = async (data: LoginFormData) => {
-  try {
-    const res = await axios.post("/api/auth/login", data, { 
-      withCredentials: true  // ✅ crucial
-    });
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      const res = await axios.post("/api/auth/login", data, {
+        withCredentials: true, // ✅ crucial
+      });
 
-    console.log("Login API response:", res.data);
+      console.log("Login API response:", res.data);
 
-    toast.success("Login successful");
+      toast.success("Login successful");
 
-    if (res.data.role === "admin") {
-      router.push("/");
-    } else {
-      router.push("/dashboard"); // example for normal users
+      if (res.data.role === "admin") {
+        router.push("/");
+      } else {
+        router.push("/"); // example for normal users
+      }
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        toast.error(err.response.data.error);
+      } else {
+        toast.error("Something went wrong. Try again.");
+      }
+      console.error("Login error:", err);
     }
-  } catch (err: any) {
-    if (err.response?.data?.error) {
-      toast.error(err.response.data.error);
-    } else {
-      toast.error("Something went wrong. Try again.");
-    }
-    console.error("Login error:", err);
-  }
-};
-
-
+  };
 
   return (
     <div className="flex flex-col-reverse md:flex-row min-h-screen bg-[--var(--background)]">
@@ -60,7 +60,6 @@ const onSubmit = async (data: LoginFormData) => {
           "/darw2.avif",
           "/cart.avif",
           "/4.avif",
-          
         ].map((src, i) => (
           <div
             key={i}
@@ -107,16 +106,26 @@ const onSubmit = async (data: LoginFormData) => {
             )}
           </div>
 
-          <div>
+          <div className="relative w-full">
             <InputField
               label="Password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               variant="underline"
               placeholder="Enter your password"
               sizes="lg"
-              className="w-full"
+              className="w-full pr-10" // 👈 
               {...register("password")}
             />
+
+            {/* Eye Icon inside input */}
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-9 text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <Eye size={20} /> : <EyeClosed size={20} />  }
+            </button>
+
             {errors.password && (
               <p className="text-red-600 text-sm mt-1 font-medium">
                 {errors.password.message}

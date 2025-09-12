@@ -54,7 +54,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <img
-          src="/av1.png"
+          src={user.profilePic ? user.profilePic : "/av1.png"}
           alt="User Avatar"
           className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border cursor-pointer"
         />

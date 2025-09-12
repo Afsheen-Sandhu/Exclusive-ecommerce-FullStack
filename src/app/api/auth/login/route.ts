@@ -3,18 +3,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/mongodb";
 import User from "@/lib/models/User";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   await connectDB();
 
   const { email, password } = await req.json();
 
-  // Find user in DB
+  // Find user
   const user = await User.findOne({ email });
-  if (!user) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  }
 
-  // Check password directly (plain text)
-  if (user.password !== password) {
+  // Compare bcrypt hashed password
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
@@ -27,7 +31,12 @@ export async function POST(req: NextRequest) {
 
   // Set JWT in httpOnly cookie
   const response = NextResponse.json({ role: user.role });
-  response.cookies.set("token", token, { httpOnly: true, path: "/" });
+  response.cookies.set("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // ✅ important for HTTPS
+    sameSite: "strict",
+    path: "/",
+  });
 
   return response;
 }
